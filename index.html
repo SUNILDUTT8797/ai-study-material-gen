@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>AI Study Material & MCQ Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
+            color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            padding: 24px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            color: #9ca3af;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: #020617;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid #1f2937;
+        }
+
+        label {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            display: block;
+            color: #d1d5db;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            background: #020617;
+            color: #e5e7eb;
+            resize: vertical;
+            font-size: 0.95rem;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 1px #4f46e5;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+            align-items: center;
+        }
+
+        .row>div {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            background: #020617;
+            color: #e5e7eb;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 1px #4f46e5;
+        }
+
+        button {
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button span.loader {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .output-section {
+            margin-top: 20px;
+        }
+
+        .output-section h2 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        pre {
+            background: #020617;
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #1f2937;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+
+        .error {
+            color: #f97373;
+        }
+
+        .footer {
+            margin-top: 18px;
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 16px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>AI Study Material & MCQ Generator 📚🤖</h1>
+        <p class="subtitle">
+            Paste your syllabus or notes below. The backend (FastAPI + CrewAI + Gemini) will analyze it and generate
+            exam-focused notes & MCQs.
+        </p>
+
+        <div class="card">
+            <label for="inputText">Paste your study content here</label>
+            <textarea id="inputText" placeholder="E.g. Chapter on Computer Networks, OS, DBMS, etc..."></textarea>
+
+            <div class="row">
+                <div>
+                    <label for="numMcqs">Number of MCQs</label>
+                    <input id="numMcqs" type="number" min="1" max="25" value="5" />
+                </div>
+                <div style="flex: 0 0 auto;">
+                    <label>&nbsp;</label>
+                    <button id="generateBtn">
+                        <span id="btnText">Generate Study Material</span>
+                        <span id="btnLoader" class="loader" style="display: none;"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="status" class="status"></div>
+
+            <div class="output-section">
+                <h2>Topics & Subtopics</h2>
+                <pre id="topicsArea">Topics will appear here...</pre>
+            </div>
+
+            <div class="output-section">
+                <h2>Generated Notes</h2>
+                <pre id="notesArea">Notes will appear here...</pre>
+            </div>
+
+            <div class="output-section">
+                <h2>Generated MCQs</h2>
+                <pre id="mcqArea">MCQs will appear here...</pre>
+            </div>
+
+
+            <div class="footer">
+                Backend: FastAPI + CrewAI + Gemini • Frontend: Simple HTML, CSS & JS
+            </div>
+        </div>
+
+        <script>
+            const API_URL = "http://127.0.0.1:8000/generate_study_material";
+
+            const inputText = document.getElementById("inputText");
+            const numMcqsInput = document.getElementById("numMcqs");
+            const generateBtn = document.getElementById("generateBtn");
+            const btnText = document.getElementById("btnText");
+            const btnLoader = document.getElementById("btnLoader");
+            const topicsArea = document.getElementById("topicsArea");
+            const notesArea = document.getElementById("notesArea");
+            const mcqArea = document.getElementById("mcqArea");
+
+            const statusEl = document.getElementById("status");
+
+            function setLoading(isLoading) {
+                if (isLoading) {
+                    generateBtn.disabled = true;
+                    btnText.textContent = "Generating...";
+                    btnLoader.style.display = "inline-block";
+                    statusEl.textContent = "Please wait, AI agents are analyzing and generating content...";
+                } else {
+                    generateBtn.disabled = false;
+                    btnText.textContent = "Generate Study Material";
+                    btnLoader.style.display = "none";
+                }
+            }
+
+            generateBtn.addEventListener("click", async () => {
+                const text = inputText.value.trim();
+                const numMcqs = parseInt(numMcqsInput.value, 10) || 5;
+
+                if (!text) {
+                    statusEl.textContent = "";
+                    statusEl.classList.add("error");
+                    statusEl.textContent = "Please paste some content first.";
+                    return;
+                }
+
+                statusEl.classList.remove("error");
+                topicsArea.textContent = "Waiting for topics...";
+                notesArea.textContent = "Waiting for notes...";
+                mcqArea.textContent = "Waiting for MCQs...";
+                setLoading(true);
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            text: text,
+                            num_mcqs: numMcqs,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Server returned an error: " + response.status);
+                    }
+
+                    const data = await response.json();
+                    topicsArea.textContent = data.topics || "No topics received.";
+                    notesArea.textContent = data.notes || "No notes received.";
+                    mcqArea.textContent = data.mcqs || "No MCQs received.";
+                    statusEl.textContent = "Done ✅ You can scroll through the generated notes & MCQs above.";
+                } catch (err) {
+                    console.error(err);
+                    statusEl.classList.add("error");
+                    statusEl.textContent = "Error: " + err.message;
+                    topicsArea.textContent = "Something went wrong.";
+                    notesArea.textContent = "Something went wrong.";
+                    mcqArea.textContent = "Something went wrong.";
+                } finally {
+                    setLoading(false);
+                }
+            });
+        </script>
+</body>
+
+</html>
